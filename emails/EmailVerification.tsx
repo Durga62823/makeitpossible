@@ -21,7 +21,7 @@ export default function EmailVerification({ firstName, actionUrl }: EmailVerific
   return (
     <Html>
       <Head />
-      <Preview>Verify your Make It Possible account</Preview>
+      <Preview>Verify your Project management Tool account</Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
           <Text style={styles.heading}>Confirm your email</Text>

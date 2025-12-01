@@ -10,7 +10,7 @@ export default function WelcomeEmail({ firstName }: WelcomeEmailProps) {
   return (
     <Html>
       <Head />
-      <Preview>Welcome to Make It Possible</Preview>
+      <Preview>Welcome to Project Management Tool</Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
           <Text style={styles.heading}>Welcome aboard!</Text>

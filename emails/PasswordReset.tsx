@@ -21,7 +21,7 @@ export default function PasswordReset({ firstName, actionUrl }: PasswordResetPro
   return (
     <Html>
       <Head />
-      <Preview>Reset your Make It Possible password</Preview>
+      <Preview>Reset your Project Management tool password</Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
           <Text style={styles.heading}>Password reset requested</Text>
