@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import Link from "next/link";
 
 export const metadata = {
   title: "Dashboard | Make It Possible",
@@ -14,14 +15,37 @@ export default async function DashboardPage() {
         <p className="mt-3 text-slate-500">
           This is a protected area. Plug in your dashboards, AI copilots, and workflows here.
         </p>
-        <form action="/api/auth/signout" method="post" className="mt-6">
-          <button
-            type="submit"
-            className="rounded-xl bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-          >
-            Log out
-          </button>
-        </form>
+        
+        <div className="mt-6 flex flex-wrap gap-3">
+          {(session?.user?.role === "ADMIN" || session?.user?.role === "MANAGER") && (
+            <>
+              {session?.user?.role === "ADMIN" && (
+                <Link
+                  href="/admin"
+                  className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                >
+                  Admin Dashboard
+                </Link>
+              )}
+              {(session?.user?.role === "MANAGER" || session?.user?.role === "ADMIN") && (
+                <Link
+                  href="/manager"
+                  className="rounded-xl bg-green-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
+                >
+                  Manager Dashboard
+                </Link>
+              )}
+            </>
+          )}
+          <form action="/api/auth/signout" method="post">
+            <button
+              type="submit"
+              className="rounded-xl bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              Log out
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

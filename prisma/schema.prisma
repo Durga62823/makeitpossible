@@ -34,6 +34,30 @@ enum AppraisalStatus {
   CANCELLED
 }
 
+enum PTOStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum PTOType {
+  VACATION
+  SICK_LEAVE
+  PERSONAL
+  UNPAID
+  BEREAVEMENT
+  PARENTAL
+}
+
+enum TimesheetStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  NEEDS_CORRECTION
+}
+
 enum AuditAction {
   USER_CREATED
   USER_UPDATED
@@ -83,6 +107,10 @@ model User {
   performanceMetrics  PerformanceMetric[]
   auditLogs           AuditLog[]
   customRoles         UserCustomRole[]
+  ptoRequests         PTORequest[]
+  timesheets          Timesheet[]
+  approvedPTOs        PTORequest[]         @relation("PTOApprover")
+  approvedTimesheets  Timesheet[]          @relation("TimesheetApprover")
 
   @@map("users")
 }
@@ -185,6 +213,7 @@ model Project {
   team             Team?         @relation(fields: [teamId], references: [id])
   members          ProjectMember[]
   performanceMetrics PerformanceMetric[]
+  timesheetEntries TimesheetEntry[]
 
   @@map("projects")
 }
@@ -324,4 +353,104 @@ model OrganizationSettings {
   updatedAt       DateTime @updatedAt
 
   @@map("organization_settings")
+}
+
+model PTORequest {
+  id          String     @id @default(cuid())
+  userId      String
+  type        PTOType
+  startDate   DateTime
+  endDate     DateTime
+  days        Float
+  reason      String?
+  status      PTOStatus  @default(PENDING)
+  approverId  String?
+  approvedAt  DateTime?
+  rejectionReason String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  approver    User?      @relation("PTOApprover", fields: [approverId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([startDate])
+  @@map("pto_requests")
+}
+
+model Timesheet {
+  id          String          @id @default(cuid())
+  userId      String
+  weekStart   DateTime
+  weekEnd     DateTime
+  totalHours  Float           @default(0)
+  status      TimesheetStatus @default(DRAFT)
+  approverId  String?
+  approvedAt  DateTime?
+  comments    String?
+  entries     TimesheetEntry[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  approver    User?           @relation("TimesheetApprover", fields: [approverId], references: [id])
+
+  @@unique([userId, weekStart])
+  @@index([userId])
+  @@index([status])
+  @@index([weekStart])
+  @@map("timesheets")
+}
+
+model TimesheetEntry {
+  id          String     @id @default(cuid())
+  timesheetId String
+  date        DateTime
+  projectId   String?
+  hours       Float
+  description String?
+  billable    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+
+  timesheet   Timesheet  @relation(fields: [timesheetId], references: [id], onDelete: Cascade)
+  project     Project?   @relation(fields: [projectId], references: [id])
+
+  @@index([timesheetId])
+  @@index([date])
+  @@map("timesheet_entries")
+}
+
+model Goal {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  targetDate  DateTime?
+  progress    Float    @default(0)
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@map("goals")
+}
+
+model OneOnOne {
+  id          String   @id @default(cuid())
+  managerId   String
+  employeeId  String
+  scheduledAt DateTime
+  duration    Int      @default(30)
+  notes       String?
+  topics      String?
+  actionItems String?
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([managerId])
+  @@index([employeeId])
+  @@index([scheduledAt])
+  @@map("one_on_ones")
 }

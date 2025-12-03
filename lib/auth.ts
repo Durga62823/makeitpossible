@@ -109,8 +109,9 @@ const authConfig: NextAuthConfig = {
           name: user.firstName ?? user.name ?? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
           image: user.image,
           status: user.status,
+          role: user.role,
           rememberMe: parsed.data.rememberMe,
-        } as const;
+        };
       },
     }),
     Google({
@@ -154,6 +155,7 @@ const authConfig: NextAuthConfig = {
       if (user) {
         token.id = user.id as string;
         token.status = (user as { status?: string }).status ?? token.status;
+        token.role = (user as { role?: any }).role ?? token.role;
         token.rememberMe = (user as { rememberMe?: boolean }).rememberMe ?? false;
         token.picture = user.image ?? token.picture;
         const now = Math.floor(Date.now() / 1000);
@@ -170,6 +172,7 @@ const authConfig: NextAuthConfig = {
       if (session.user && token.sub) {
         session.user.id = token.sub;
         session.user.status = token.status as string;
+        session.user.role = token.role as any;
         session.user.image = token.picture as string | undefined;
       }
 
