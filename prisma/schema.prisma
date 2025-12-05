@@ -5,6 +5,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 enum UserStatus {
@@ -16,6 +17,7 @@ enum UserStatus {
 enum UserRole {
   ADMIN
   MANAGER
+  LEAD
   EMPLOYEE
 }
 

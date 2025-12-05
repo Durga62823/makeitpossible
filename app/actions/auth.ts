@@ -20,7 +20,10 @@ export type ActionResponse<T = unknown> =
 export async function registerUser(payload: unknown): Promise<ActionResponse> {
   const parsed = signUpSchema.safeParse(payload);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.errors[0]?.message ?? "Invalid input" };
+    return {
+      success: false,
+      error: parsed.error.errors[0]?.message ?? "Invalid input",
+    };
   }
 
   const { firstName, lastName, email, password } = parsed.data;
@@ -28,10 +31,15 @@ export async function registerUser(payload: unknown): Promise<ActionResponse> {
 
   const rateLimit = await checkRateLimit(`register:${sanitizedEmail}`);
   if (!rateLimit.success) {
-    return { success: false, error: "Too many attempts. Please wait a minute." };
+    return {
+      success: false,
+      error: "Too many attempts. Please wait a minute.",
+    };
   }
 
-  const existing = await prisma.user.findUnique({ where: { email: sanitizedEmail } });
+  const existing = await prisma.user.findUnique({
+    where: { email: sanitizedEmail },
+  });
   if (existing) {
     return { success: false, error: "Email already exists" };
   }
@@ -56,15 +64,25 @@ export async function registerUser(payload: unknown): Promise<ActionResponse> {
     },
   });
 
-  await sendVerificationEmail({ email: sanitizedEmail, token, firstName: user.firstName });
+  await sendVerificationEmail({
+    email: sanitizedEmail,
+    token,
+    firstName: user.firstName,
+  });
 
-  return { success: true, message: "Account created. Check your inbox to verify." };
+  return {
+    success: true,
+    message: "Account created. Check your inbox to verify.",
+  };
 }
 
 export async function loginUser(payload: unknown): Promise<ActionResponse> {
   const parsed = signInSchema.safeParse(payload);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.errors[0]?.message ?? "Invalid input" };
+    return {
+      success: false,
+      error: parsed.error.errors[0]?.message ?? "Invalid input",
+    };
   }
 
   try {
@@ -75,14 +93,27 @@ export async function loginUser(payload: unknown): Promise<ActionResponse> {
       redirect: false,
     });
 
-    return { success: true, message: "Welcome back" };
+    // Fetch user role to return for role-based redirect
+    const user = await prisma.user.findUnique({
+      where: { email: parsed.data.email },
+      select: { role: true, id: true, email: true },
+    });
+
+    return {
+      success: true,
+      message: "Welcome back",
+      data: { role: user?.role || "EMPLOYEE" },
+    };
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
         case "CredentialsSignin":
           return { success: false, error: "Invalid credentials" };
         case "AccessDenied":
-          return { success: false, error: "Confirm your email before logging in" };
+          return {
+            success: false,
+            error: "Confirm your email before logging in",
+          };
         default:
           logger.error(error, "Auth error");
           return { success: false, error: "Unable to log in" };
@@ -94,9 +125,13 @@ export async function loginUser(payload: unknown): Promise<ActionResponse> {
   }
 }
 
-export async function resendVerificationEmail(email: string): Promise<ActionResponse> {
+export async function resendVerificationEmail(
+  email: string
+): Promise<ActionResponse> {
   const sanitizedEmail = sanitizeInput(email).toLowerCase();
-  const user = await prisma.user.findUnique({ where: { email: sanitizedEmail } });
+  const user = await prisma.user.findUnique({
+    where: { email: sanitizedEmail },
+  });
 
   if (!user) {
     return { success: false, error: "Account not found" };
@@ -106,7 +141,9 @@ export async function resendVerificationEmail(email: string): Promise<ActionResp
     return { success: false, error: "Email already verified" };
   }
 
-  await prisma.verificationToken.deleteMany({ where: { identifier: sanitizedEmail } });
+  await prisma.verificationToken.deleteMany({
+    where: { identifier: sanitizedEmail },
+  });
   const token = generateToken();
   await prisma.verificationToken.create({
     data: {
@@ -116,7 +153,11 @@ export async function resendVerificationEmail(email: string): Promise<ActionResp
     },
   });
 
-  await sendVerificationEmail({ email: sanitizedEmail, token, firstName: user.firstName });
+  await sendVerificationEmail({
+    email: sanitizedEmail,
+    token,
+    firstName: user.firstName,
+  });
   return { success: true, message: "Verification email sent" };
 }
 
@@ -125,7 +166,9 @@ export async function verifyEmail(token: string): Promise<ActionResponse> {
     return { success: false, error: "Missing token" };
   }
 
-  const storedToken = await prisma.verificationToken.findUnique({ where: { token } });
+  const storedToken = await prisma.verificationToken.findUnique({
+    where: { token },
+  });
   if (!storedToken) {
     return { success: false, error: "Invalid or expired token" };
   }
@@ -140,7 +183,9 @@ export async function verifyEmail(token: string): Promise<ActionResponse> {
     data: { emailVerified: new Date() },
   });
 
-  await prisma.verificationToken.deleteMany({ where: { identifier: storedToken.identifier } });
+  await prisma.verificationToken.deleteMany({
+    where: { identifier: storedToken.identifier },
+  });
   await sendWelcomeEmail(user.email, user.firstName);
   return { success: true, message: "Email verified" };
 }

@@ -37,8 +37,21 @@ export function LoginForm() {
       }
 
       toast.success("Authenticated");
+
+      // Get user role from result data or fetch from session
+      const userRole = (result.data as any)?.role;
+      let redirectPath = "/dashboard";
+
+      if (userRole === "ADMIN") {
+        redirectPath = "/admin";
+      } else if (userRole === "MANAGER" || userRole === "LEAD") {
+        redirectPath = "/manager";
+      } else {
+        redirectPath = "/dashboard";
+      }
+
       setAuth({ status: "authenticated", user: { email: values.email } });
-      router.push("/dashboard");
+      router.push(redirectPath);
     });
   };
 
@@ -46,21 +59,42 @@ export function LoginForm() {
     <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
-        <Input id="email" type="email" placeholder="you@company.com" autoComplete="email" {...register("email")} />
-        {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
+        <Input
+          id="email"
+          type="email"
+          placeholder="you@company.com"
+          autoComplete="email"
+          {...register("email")}
+        />
+        {errors.email && (
+          <p className="text-sm text-red-600">{errors.email.message}</p>
+        )}
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="password">Password</Label>
-          <Link href="/auth/forgot-password" className="text-sm font-medium text-brand-primary">
+          <Link
+            href="/auth/forgot-password"
+            className="text-sm font-medium text-brand-primary"
+          >
             Forgot password?
           </Link>
         </div>
-        <PasswordInput id="password" autoComplete="current-password" {...register("password")} />
-        {errors.password && <p className="text-sm text-red-600">{errors.password.message}</p>}
+        <PasswordInput
+          id="password"
+          autoComplete="current-password"
+          {...register("password")}
+        />
+        {errors.password && (
+          <p className="text-sm text-red-600">{errors.password.message}</p>
+        )}
       </div>
       <label className="flex items-center gap-2 text-sm text-muted-foreground">
-        <input type="checkbox" className="h-4 w-4" {...register("rememberMe")} />
+        <input
+          type="checkbox"
+          className="h-4 w-4"
+          {...register("rememberMe")}
+        />
         Remember me for 30 days
       </label>
       <Button type="submit" className="w-full" disabled={isPending}>

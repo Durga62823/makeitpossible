@@ -23,13 +23,13 @@ export default async function SettingsPage() {
     },
   });
 
-  const preferences = user?.preferences || {
+  const preferences = (user?.preferences as any) || {
     theme: "light",
     language: "English",
     timezone: "UTC",
   };
 
-  const notifications = user?.notificationSettings || {
+  const notifications = (user?.notificationSettings as any) || {
     emailNotifications: true,
     projectUpdates: true,
     teamActivity: true,

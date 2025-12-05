@@ -27,7 +27,7 @@ export function CreateUserForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [role, setRole] = useState<"ADMIN" | "MANAGER" | "EMPLOYEE">(
+  const [role, setRole] = useState<"ADMIN" | "MANAGER" | "LEAD" | "EMPLOYEE">(
     "EMPLOYEE"
   );
 
@@ -43,7 +43,7 @@ export function CreateUserForm() {
       firstName: formData.get("firstName") as string,
       lastName: formData.get("lastName") as string,
       password: formData.get("password") as string,
-      role: role,
+      role: role as "ADMIN" | "MANAGER" | "EMPLOYEE",
       position: formData.get("position") as string,
       phoneNumber: formData.get("phoneNumber") as string,
     });
@@ -129,7 +129,7 @@ export function CreateUserForm() {
               <Select
                 value={role}
                 onValueChange={(value) =>
-                  setRole(value as "ADMIN" | "MANAGER" | "EMPLOYEE")
+                  setRole(value as "ADMIN" | "MANAGER" | "LEAD" | "EMPLOYEE")
                 }
                 disabled={loading}
               >
@@ -138,6 +138,7 @@ export function CreateUserForm() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="EMPLOYEE">Employee</SelectItem>
+                  <SelectItem value="LEAD">Team Lead</SelectItem>
                   <SelectItem value="MANAGER">Manager</SelectItem>
                   <SelectItem value="ADMIN">Admin</SelectItem>
                 </SelectContent>
