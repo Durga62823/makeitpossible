@@ -42,6 +42,19 @@ export async function requireManager() {
 }
 
 /**
+ * Require lead role
+ */
+export async function requireLead() {
+  const session = await requireAuth();
+  
+  if (session.user.role !== "LEAD" && session.user.role !== "ADMIN") {
+    redirect("/dashboard");
+  }
+  
+  return session;
+}
+
+/**
  * Require admin role
  */
 export async function requireAdmin() {

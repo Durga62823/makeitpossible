@@ -15,7 +15,49 @@ const REMEMBERED_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 const DEFAULT_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 const authConfig: NextAuthConfig = {
-  adapter: PrismaAdapter(prisma),
+  trustHost: true,
+  adapter: {
+    ...PrismaAdapter(prisma),
+    // Override linkAccount to handle email account linking
+    linkAccount: async (account) => {
+      // Check if a user with this email already exists
+      const provider = account.provider;
+      const providerAccountId = account.providerAccountId;
+      
+      // Try to find existing account
+      const existingAccount = await prisma.account.findUnique({
+        where: {
+          provider_providerAccountId: {
+            provider,
+            providerAccountId,
+          },
+        },
+        include: { user: true },
+      });
+
+      if (existingAccount) {
+        // Account already linked, return it
+        return existingAccount;
+      }
+
+      // Create new account link
+      return await prisma.account.create({
+        data: {
+          userId: account.userId,
+          type: account.type,
+          provider: account.provider,
+          providerAccountId: account.providerAccountId,
+          refresh_token: account.refresh_token,
+          access_token: account.access_token,
+          expires_at: account.expires_at,
+          token_type: account.token_type,
+          scope: account.scope,
+          id_token: account.id_token,
+          session_state: account.session_state,
+        },
+      });
+    },
+  },
   session: {
     strategy: "jwt",
     maxAge: REMEMBERED_MAX_AGE,
@@ -39,39 +81,33 @@ const authConfig: NextAuthConfig = {
         const parsed = signInSchema.safeParse({
           email: credentials?.email,
           password: credentials?.password,
-          rememberMe:
-            credentials?.rememberMe === "true" ||
-            credentials?.rememberMe === true,
+          rememberMe: credentials?.rememberMe === "true" || credentials?.rememberMe === true,
         });
 
         if (!parsed.success) {
           throw new Error("Invalid credentials");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: parsed.data.email },
-        });
+        const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
 
         if (!user || !user.password) {
           throw new Error("Invalid credentials");
         }
 
         const { verifyPassword } = await import("@/lib/auth-utils");
-        const isValidPassword = await verifyPassword(
-          parsed.data.password,
-          user.password
-        );
+        const isValidPassword = await verifyPassword(parsed.data.password, user.password);
         if (!isValidPassword) {
           throw new Error("Invalid credentials");
+        }
+
+        if (!user.emailVerified) {
+          throw new Error("Email not verified");
         }
 
         return {
           id: user.id,
           email: user.email,
-          name:
-            user.firstName ??
-            user.name ??
-            `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
+          name: user.firstName ?? user.name ?? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
           image: user.image,
           status: user.status,
           role: user.role,
@@ -91,37 +127,6 @@ const authConfig: NextAuthConfig = {
     }),
   ],
   callbacks: {
-    async linkAccount({ user, account, profile }) {
-      // Handle account unlinking if the account is already linked to a different user
-      try {
-        if (account) {
-          const existingAccount = await prisma.account.findUnique({
-            where: {
-              provider_providerAccountId: {
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
-              },
-            },
-          });
-
-          // If account exists and belongs to different user, delete the old one
-          if (existingAccount && existingAccount.userId !== user.id) {
-            await prisma.account.delete({
-              where: {
-                id: existingAccount.id,
-              },
-            });
-            console.log(
-              `Unlinked ${account.provider} account from previous user`
-            );
-          }
-        }
-      } catch (error) {
-        console.error("Failed to handle account unlinking:", error);
-      }
-
-      return true;
-    },
     async signIn({ user, account, profile }) {
       // For OAuth providers, auto-verify email if not already verified
       if (account && account.provider !== "credentials") {
@@ -143,57 +148,19 @@ const authConfig: NextAuthConfig = {
             },
           });
         }
-
-        // Handle account linking: if account exists but linked to different user, unlink it
-        if (user.id && account) {
-          const existingAccount = await prisma.account.findUnique({
-            where: {
-              provider_providerAccountId: {
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
-              },
-            },
-          });
-
-          if (existingAccount && existingAccount.userId !== user.id) {
-            // Delete the old account link
-            await prisma.account.delete({
-              where: {
-                provider_providerAccountId: {
-                  provider: account.provider,
-                  providerAccountId: account.providerAccountId,
-                },
-              },
-            });
-          }
-        }
       }
 
       return true;
-    },
-    async redirect({ url, baseUrl }) {
-      // If it's a relative URL, redirect to that URL
-      if (url.startsWith("/")) {
-        return `${baseUrl}${url}`;
-      }
-      // If the URL is from the same origin, use it
-      if (new URL(url).origin === baseUrl) {
-        return url;
-      }
-      // Return to base URL (which will redirect based on role via middleware)
-      return baseUrl;
     },
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id as string;
         token.status = (user as { status?: string }).status ?? token.status;
         token.role = (user as { role?: any }).role ?? token.role;
-        token.rememberMe =
-          (user as { rememberMe?: boolean }).rememberMe ?? false;
+        token.rememberMe = (user as { rememberMe?: boolean }).rememberMe ?? false;
         token.picture = user.image ?? token.picture;
         const now = Math.floor(Date.now() / 1000);
-        token.sessionExpiresAt =
-          now + (token.rememberMe ? REMEMBERED_MAX_AGE : DEFAULT_MAX_AGE);
+        token.sessionExpiresAt = now + (token.rememberMe ? REMEMBERED_MAX_AGE : DEFAULT_MAX_AGE);
       }
 
       if (account) {
@@ -211,8 +178,7 @@ const authConfig: NextAuthConfig = {
       }
 
       session.rememberMe = Boolean(token.rememberMe);
-      const expiration =
-        (token.sessionExpiresAt as number | undefined) ??
+      const expiration = (token.sessionExpiresAt as number | undefined) ??
         Math.floor(Date.now() / 1000) + DEFAULT_MAX_AGE;
       session.expires = new Date(expiration * 1000).toISOString() as any;
       return session;
@@ -222,37 +188,11 @@ const authConfig: NextAuthConfig = {
     },
   },
   events: {
-    async signIn({ user, account }) {
-      // Handle account unlinking if needed
-      try {
-        if (account && user.id) {
-          const existingAccount = await prisma.account.findUnique({
-            where: {
-              provider_providerAccountId: {
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
-              },
-            },
-          });
-
-          // If account exists but linked to different user, delete it to allow re-linking
-          if (existingAccount && existingAccount.userId !== user.id) {
-            await prisma.account.delete({
-              where: {
-                id: existingAccount.id,
-              },
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Failed to handle account linking:", error);
-      }
-
-      // Existing signIn event logic
+    async signIn({ user }) {
       try {
         const ip = await getRequestIp();
         const userAgent = await getRequestUserAgent();
-
+        
         await prisma.user.update({
           where: { id: user.id },
           data: {
@@ -273,13 +213,10 @@ const authConfig: NextAuthConfig = {
             },
             {
               ex: REMEMBERED_MAX_AGE,
-            }
+            },
           );
         } catch (redisError) {
-          console.warn(
-            "Redis unavailable, skipping session cache:",
-            redisError
-          );
+          console.warn("Redis unavailable, skipping session cache:", redisError);
         }
       } catch (error) {
         console.error("Failed to persist login metadata:", error);

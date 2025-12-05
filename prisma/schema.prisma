@@ -218,6 +218,7 @@ model Project {
   members          ProjectMember[]
   performanceMetrics PerformanceMetric[]
   timesheetEntries TimesheetEntry[]
+  tasks            Task[]
 
   @@map("projects")
 }
@@ -457,4 +458,124 @@ model OneOnOne {
   @@index([employeeId])
   @@index([scheduledAt])
   @@map("one_on_ones")
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  BLOCKED
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum SprintStatus {
+  PLANNING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Task {
+  id              String       @id @default(cuid())
+  title           String
+  description     String?
+  status          TaskStatus   @default(TODO)
+  priority        TaskPriority @default(MEDIUM)
+  projectId       String?
+  assigneeId      String?
+  reporterId      String
+  sprintId        String?
+  storyPoints     Int?
+  estimatedHours  Float?
+  actualHours     Float?
+  blockedReason   String?
+  dependencies    String?      // JSON array of task IDs
+  tags            String?      // JSON array of tags
+  acceptanceCriteria String?
+  technicalNotes  String?
+  prUrl           String?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  dueDate         DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  project         Project?     @relation(fields: [projectId], references: [id])
+  sprint          Sprint?      @relation(fields: [sprintId], references: [id])
+
+  @@index([projectId])
+  @@index([assigneeId])
+  @@index([sprintId])
+  @@index([status])
+  @@map("tasks")
+}
+
+model Sprint {
+  id          String        @id @default(cuid())
+  name        String
+  goal        String?
+  teamId      String?
+  startDate   DateTime
+  endDate     DateTime
+  status      SprintStatus  @default(PLANNING)
+  velocity    Int?
+  capacityHours Float?
+  retrospectiveNotes String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  tasks       Task[]
+
+  @@index([teamId])
+  @@index([status])
+  @@index([startDate])
+  @@map("sprints")
+}
+
+model TechnicalMetric {
+  id              String   @id @default(cuid())
+  teamId          String?
+  projectId       String?
+  metricType      String   // pr_merge_time, code_review_time, build_time, deployment_frequency, bug_count, etc.
+  value           Float
+  unit            String?  // hours, count, percentage, etc.
+  period          String   // daily, weekly, sprint
+  periodStart     DateTime
+  periodEnd       DateTime
+  metadata        Json?    // Additional context
+  recordedAt      DateTime @default(now())
+
+  @@index([teamId])
+  @@index([projectId])
+  @@index([metricType])
+  @@index([periodStart])
+  @@map("technical_metrics")
+}
+
+model CodeReview {
+  id          String   @id @default(cuid())
+  taskId      String?
+  prUrl       String
+  prTitle     String
+  authorId    String
+  reviewerId  String?
+  status      String   // pending, approved, changes_requested, merged
+  linesChanged Int?
+  filesChanged Int?
+  comments    Int?
+  createdAt   DateTime @default(now())
+  reviewedAt  DateTime?
+  mergedAt    DateTime?
+
+  @@index([authorId])
+  @@index([reviewerId])
+  @@index([status])
+  @@map("code_reviews")
 }

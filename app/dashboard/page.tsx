@@ -17,7 +17,7 @@ export default async function DashboardPage() {
         </p>
         
         <div className="mt-6 flex flex-wrap gap-3">
-          {(session?.user?.role === "ADMIN" || session?.user?.role === "MANAGER") && (
+          {(session?.user?.role === "ADMIN" || session?.user?.role === "MANAGER" || session?.user?.role === "LEAD") && (
             <>
               {session?.user?.role === "ADMIN" && (
                 <Link
@@ -33,6 +33,14 @@ export default async function DashboardPage() {
                   className="rounded-xl bg-green-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
                 >
                   Manager Dashboard
+                </Link>
+              )}
+              {(session?.user?.role === "LEAD" || session?.user?.role === "ADMIN") && (
+                <Link
+                  href="/lead"
+                  className="rounded-xl bg-purple-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-purple-700"
+                >
+                  Tech Lead Dashboard
                 </Link>
               )}
             </>
