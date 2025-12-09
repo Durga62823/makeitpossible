@@ -120,7 +120,6 @@ export default function AIFeaturesPage() {
           </Card>
         </div>
       )}
-
     </div>
   );
 }
