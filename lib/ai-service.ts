@@ -85,6 +85,122 @@ export interface AISprintPlan {
   recommendations: string[];
 }
 
+// Manager AI Features
+export interface AITeamPerformance {
+  overallScore: number;
+  trends: {
+    productivity: 'increasing' | 'stable' | 'decreasing';
+    velocity: number;
+  };
+  teamMembers: Array<{
+    name: string;
+    performance: 'high' | 'medium' | 'low';
+    strengths: string[];
+    concerns: string[];
+  }>;
+  recommendations: string[];
+  burnoutRisks: Array<{
+    member: string;
+    riskLevel: 'low' | 'medium' | 'high';
+    indicators: string[];
+  }>;
+}
+
+export interface AIResourceOptimization {
+  currentAllocation: string;
+  optimizationScore: number;
+  suggestions: Array<{
+    action: string;
+    impact: string;
+    priority: 'low' | 'medium' | 'high';
+  }>;
+  conflicts: Array<{
+    resource: string;
+    issue: string;
+    resolution: string;
+  }>;
+  hiringNeeds: Array<{
+    role: string;
+    reason: string;
+    urgency: 'low' | 'medium' | 'high';
+  }>;
+}
+
+export interface AIApprovalAssistant {
+  recommendation: 'approve' | 'reject' | 'review';
+  confidence: number;
+  reasoning: string[];
+  flags: Array<{
+    type: string;
+    severity: 'low' | 'medium' | 'high';
+    description: string;
+  }>;
+  suggestions: string[];
+}
+
+// Lead AI Features
+export interface AITaskPrioritization {
+  prioritizedTasks: Array<{
+    taskName: string;
+    priority: number;
+    reasoning: string;
+    suggestedAssignee?: string;
+    estimatedHours?: number;
+  }>;
+  dependencies: Array<{
+    task: string;
+    dependsOn: string[];
+  }>;
+  recommendations: string[];
+}
+
+export interface AIStandupSummary {
+  summary: string;
+  blockers: Array<{
+    member: string;
+    blocker: string;
+    severity: 'low' | 'medium' | 'high';
+    suggestedAction: string;
+  }>;
+  achievements: string[];
+  concerns: string[];
+  followUpActions: Array<{
+    action: string;
+    assignee?: string;
+    priority: 'low' | 'medium' | 'high';
+  }>;
+}
+
+export interface AIRetrospectiveInsights {
+  sprintSummary: string;
+  metrics: {
+    velocityTrend: string;
+    completionRate: number;
+    averageTaskTime: number;
+  };
+  positives: string[];
+  improvements: string[];
+  actionItems: Array<{
+    action: string;
+    category: string;
+    priority: 'low' | 'medium' | 'high';
+  }>;
+  patterns: string[];
+}
+
+export interface AIReportGeneration {
+  executiveSummary: string;
+  keyMetrics: Array<{
+    metric: string;
+    value: string;
+    trend: 'up' | 'down' | 'stable';
+  }>;
+  highlights: string[];
+  risks: string[];
+  recommendations: string[];
+  nextSteps: string[];
+}
+
 class AIService {
   private apiKey: string;
   private apiEndpoint: string;
@@ -428,6 +544,313 @@ Provide a JSON response with this exact structure:
 }
 
 Optimize for balanced workload and realistic commitments.`;
+
+    const response = await this.callAI(prompt);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    throw new Error('Failed to parse AI response');
+  }
+
+  // Manager AI Features
+  async analyzeTeamPerformance(performanceData: {
+    teamMembers: Array<{
+      name: string;
+      tasksCompleted: number;
+      averageTaskTime: number;
+      overtimeHours: number;
+    }>;
+    teamSize: number;
+    period: string;
+  }): Promise<AITeamPerformance> {
+    const prompt = `You are a team performance analyst. Analyze the following team performance data:
+
+Team Size: ${performanceData.teamSize}
+Period: ${performanceData.period}
+Team Members Data: ${JSON.stringify(performanceData.teamMembers, null, 2)}
+
+Provide a JSON response with this exact structure:
+{
+  "overallScore": number (0-100),
+  "trends": {
+    "productivity": "increasing" | "stable" | "decreasing",
+    "velocity": number
+  },
+  "teamMembers": [
+    {
+      "name": "member name",
+      "performance": "high" | "medium" | "low",
+      "strengths": ["strength1", "strength2"],
+      "concerns": ["concern1", "concern2"]
+    }
+  ],
+  "recommendations": ["recommendation1", "recommendation2"],
+  "burnoutRisks": [
+    {
+      "member": "member name",
+      "riskLevel": "low" | "medium" | "high",
+      "indicators": ["indicator1", "indicator2"]
+    }
+  ]
+}`;
+
+    const response = await this.callAI(prompt);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    throw new Error('Failed to parse AI response');
+  }
+
+  async optimizeResources(resourceData: {
+    projects: Array<{ name: string; priority: number; requiredHours: number }>;
+    teamMembers: Array<{ name: string; skills: string[]; availableHours: number; currentProjects: string[] }>;
+  }): Promise<AIResourceOptimization> {
+    const prompt = `You are a resource optimization specialist. Analyze and optimize the following resource allocation:
+
+Projects: ${JSON.stringify(resourceData.projects, null, 2)}
+Team Members: ${JSON.stringify(resourceData.teamMembers, null, 2)}
+
+Provide a JSON response with this exact structure:
+{
+  "currentAllocation": "brief summary",
+  "optimizationScore": number (0-100),
+  "suggestions": [
+    {
+      "action": "specific action",
+      "impact": "expected impact",
+      "priority": "low" | "medium" | "high"
+    }
+  ],
+  "conflicts": [
+    {
+      "resource": "resource name",
+      "issue": "conflict description",
+      "resolution": "suggested resolution"
+    }
+  ],
+  "hiringNeeds": [
+    {
+      "role": "role name",
+      "reason": "why needed",
+      "urgency": "low" | "medium" | "high"
+    }
+  ]
+}`;
+
+    const response = await this.callAI(prompt);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    throw new Error('Failed to parse AI response');
+  }
+
+  async analyzeApproval(approvalData: {
+    type: 'timesheet' | 'pto' | 'expense';
+    submitter: string;
+    amount?: number;
+    hours?: number;
+    dates?: string[];
+    description: string;
+    historicalData?: any;
+  }): Promise<AIApprovalAssistant> {
+    const prompt = `You are an approval assistant. Analyze the following ${approvalData.type} request:
+
+Submitter: ${approvalData.submitter}
+${approvalData.hours ? `Hours: ${approvalData.hours}` : ''}
+${approvalData.amount ? `Amount: ${approvalData.amount}` : ''}
+${approvalData.dates ? `Dates: ${approvalData.dates.join(', ')}` : ''}
+Description: ${approvalData.description}
+${approvalData.historicalData ? `Historical Data: ${JSON.stringify(approvalData.historicalData)}` : ''}
+
+Provide a JSON response with this exact structure:
+{
+  "recommendation": "approve" | "reject" | "review",
+  "confidence": number (0-100),
+  "reasoning": ["reason1", "reason2"],
+  "flags": [
+    {
+      "type": "flag type",
+      "severity": "low" | "medium" | "high",
+      "description": "flag description"
+    }
+  ],
+  "suggestions": ["suggestion1", "suggestion2"]
+}`;
+
+    const response = await this.callAI(prompt);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    throw new Error('Failed to parse AI response');
+  }
+
+  // Lead AI Features
+  async prioritizeTasks(taskData: {
+    tasks: Array<{
+      name: string;
+      description: string;
+      estimatedHours?: number;
+      deadline?: string;
+      dependencies?: string[];
+    }>;
+    teamMembers: Array<{ name: string; skills: string[]; currentLoad: number }>;
+  }): Promise<AITaskPrioritization> {
+    const prompt = `You are a task prioritization expert. Analyze and prioritize the following tasks:
+
+Tasks: ${JSON.stringify(taskData.tasks, null, 2)}
+Team Members: ${JSON.stringify(taskData.teamMembers, null, 2)}
+
+Provide a JSON response with this exact structure:
+{
+  "prioritizedTasks": [
+    {
+      "taskName": "task name",
+      "priority": number (1-10),
+      "reasoning": "why this priority",
+      "suggestedAssignee": "team member name",
+      "estimatedHours": number
+    }
+  ],
+  "dependencies": [
+    {
+      "task": "task name",
+      "dependsOn": ["dependency1", "dependency2"]
+    }
+  ],
+  "recommendations": ["recommendation1", "recommendation2"]
+}`;
+
+    const response = await this.callAI(prompt);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    throw new Error('Failed to parse AI response');
+  }
+
+  async summarizeStandup(standupData: {
+    teamUpdates: Array<{
+      member: string;
+      yesterday: string;
+      today: string;
+      blockers: string;
+    }>;
+  }): Promise<AIStandupSummary> {
+    const prompt = `You are a standup meeting analyst. Summarize the following daily standup:
+
+Team Updates: ${JSON.stringify(standupData.teamUpdates, null, 2)}
+
+Provide a JSON response with this exact structure:
+{
+  "summary": "brief overall summary",
+  "blockers": [
+    {
+      "member": "member name",
+      "blocker": "blocker description",
+      "severity": "low" | "medium" | "high",
+      "suggestedAction": "suggested action"
+    }
+  ],
+  "achievements": ["achievement1", "achievement2"],
+  "concerns": ["concern1", "concern2"],
+  "followUpActions": [
+    {
+      "action": "action description",
+      "assignee": "person responsible",
+      "priority": "low" | "medium" | "high"
+    }
+  ]
+}`;
+
+    const response = await this.callAI(prompt);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    throw new Error('Failed to parse AI response');
+  }
+
+  async generateRetrospective(sprintData: {
+    sprintNumber: number;
+    duration: number;
+    tasksPlanned: number;
+    tasksCompleted: number;
+    velocity: number;
+    previousVelocity?: number;
+    teamFeedback?: string[];
+  }): Promise<AIRetrospectiveInsights> {
+    const prompt = `You are a sprint retrospective facilitator. Analyze the following sprint:
+
+Sprint #${sprintData.sprintNumber}
+Duration: ${sprintData.duration} days
+Tasks Planned: ${sprintData.tasksPlanned}
+Tasks Completed: ${sprintData.tasksCompleted}
+Current Velocity: ${sprintData.velocity}
+${sprintData.previousVelocity ? `Previous Velocity: ${sprintData.previousVelocity}` : ''}
+${sprintData.teamFeedback ? `Team Feedback: ${JSON.stringify(sprintData.teamFeedback)}` : ''}
+
+Provide a JSON response with this exact structure:
+{
+  "sprintSummary": "overall sprint summary",
+  "metrics": {
+    "velocityTrend": "trend description",
+    "completionRate": number (0-100),
+    "averageTaskTime": number
+  },
+  "positives": ["positive1", "positive2"],
+  "improvements": ["improvement1", "improvement2"],
+  "actionItems": [
+    {
+      "action": "action description",
+      "category": "process|technical|team",
+      "priority": "low" | "medium" | "high"
+    }
+  ],
+  "patterns": ["pattern1", "pattern2"]
+}`;
+
+    const response = await this.callAI(prompt);
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    throw new Error('Failed to parse AI response');
+  }
+
+  async generateReport(reportData: {
+    period: string;
+    projectName: string;
+    metrics: Array<{ name: string; value: string; previousValue?: string }>;
+    milestones: Array<{ name: string; status: string; dueDate: string }>;
+    issues?: string[];
+  }): Promise<AIReportGeneration> {
+    const prompt = `You are a project reporting specialist. Generate a comprehensive report:
+
+Period: ${reportData.period}
+Project: ${reportData.projectName}
+Metrics: ${JSON.stringify(reportData.metrics, null, 2)}
+Milestones: ${JSON.stringify(reportData.milestones, null, 2)}
+${reportData.issues ? `Issues: ${JSON.stringify(reportData.issues)}` : ''}
+
+Provide a JSON response with this exact structure:
+{
+  "executiveSummary": "concise executive summary",
+  "keyMetrics": [
+    {
+      "metric": "metric name",
+      "value": "current value",
+      "trend": "up" | "down" | "stable"
+    }
+  ],
+  "highlights": ["highlight1", "highlight2"],
+  "risks": ["risk1", "risk2"],
+  "recommendations": ["recommendation1", "recommendation2"],
+  "nextSteps": ["step1", "step2"]
+}`;
 
     const response = await this.callAI(prompt);
     const jsonMatch = response.match(/\{[\s\S]*\}/);

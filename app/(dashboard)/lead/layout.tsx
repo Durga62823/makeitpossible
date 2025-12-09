@@ -80,6 +80,12 @@ export default async function LeadLayout({ children }: { children: ReactNode }) 
             >
               Settings
             </Link>
+            <Link
+              href="/lead/ai-features"
+              className="border-b-2 border-transparent px-1 pb-4 text-sm font-medium text-gray-600 hover:border-gray-300 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+            >
+              ✨ AI Features
+            </Link>
           </nav>
         </div>
       </div>

@@ -57,6 +57,12 @@ export default async function ManagerLayout({
                 >
                   Capacity
                 </Link>
+                <Link
+                  href="/manager/ai-features"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                >
+                  ✨ AI Features
+                </Link>
               </nav>
             </div>
             {/* User Profile Section - Right Aligned */}
