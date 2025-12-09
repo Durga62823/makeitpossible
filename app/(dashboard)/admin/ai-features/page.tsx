@@ -121,22 +121,6 @@ export default function AIFeaturesPage() {
         </div>
       )}
 
-      <Card className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50">
-        <div className="flex items-start gap-3">
-          <Sparkles className="h-5 w-5 text-purple-600 mt-0.5" />
-          <div>
-            <h4 className="font-semibold text-sm mb-1">Setup Required</h4>
-            <p className="text-xs text-gray-600">
-              To use these AI features, add your <code className="bg-white px-1 py-0.5 rounded">GEMINI_API_KEY</code> or{' '}
-              <code className="bg-white px-1 py-0.5 rounded">OPENAI_API_KEY</code> to your environment variables.
-              Get a free Gemini API key at{' '}
-              <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                Google AI Studio
-              </a>
-            </p>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 }
