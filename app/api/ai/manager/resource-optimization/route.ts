@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { aiService } from '@/lib/ai-service';
+import { managerAIService } from '@/lib/ai-services';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = await aiService.optimizeResources({
+    const result = await managerAIService.optimizeResources({
       projects,
       teamMembers,
     });

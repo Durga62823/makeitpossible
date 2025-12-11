@@ -7,7 +7,6 @@ const config: Config = {
     "./lib/**/*.{ts,tsx}",
     "./emails/**/*.{ts,tsx}",
   ],
-  darkMode: ["class"],
   theme: {
     extend: {
       colors: {

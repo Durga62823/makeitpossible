@@ -1,6 +1,6 @@
 export default function Home() {
   return (
-    <main className="bg-gradient-to-b from-slate-50 via-white to-slate-100 px-6 py-16 dark:from-black dark:to-slate-900">
+    <main className="bg-gradient-to-b from-slate-50 via-white to-slate-100 px-6 py-16">
       <section className="mx-auto grid max-w-6xl gap-16 lg:grid-cols-2">
         <div className="space-y-8">
           <span className="inline-flex rounded-full bg-brand-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-brand-primary">

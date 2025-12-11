@@ -19,22 +19,6 @@
   --destructive-foreground: 210 40% 98%;
 }
 
-.dark {
-  --background: 224 71% 4%;
-  --foreground: 210 40% 98%;
-  --card: 224 71% 5%;
-  --card-foreground: 210 40% 98%;
-  --muted: 223 47% 11%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --popover: 224 71% 4%;
-  --popover-foreground: 215 20.2% 65.1%;
-  --border: 216 34% 17%;
-  --input: 216 34% 17%;
-  --ring: 212.7 26.8% 83.9%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 85.7% 97.3%;
-}
-
 body {
   min-height: 100vh;
   background-color: hsl(var(--background));

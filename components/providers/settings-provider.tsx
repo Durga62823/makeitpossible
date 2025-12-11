@@ -4,7 +4,6 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { getUserSettings } from "@/app/actions/get-user-settings";
 
 type Preferences = {
-  darkMode: boolean;
   compactView: boolean;
   timezone: string;
   language: string;
@@ -20,7 +19,6 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] = useState<Preferences>({
-    darkMode: false,
     compactView: false,
     timezone: "UTC (GMT+0:00)",
     language: "English",
@@ -32,13 +30,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       try {
         const settings = await getUserSettings();
         setPreferences(settings.preferences);
-        
-        // Apply dark mode
-        if (settings.preferences.darkMode) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
       } catch (error) {
         console.error("Failed to load settings:", error);
       } finally {
@@ -47,15 +38,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }
     loadSettings();
   }, []);
-
-  useEffect(() => {
-    // Apply dark mode whenever it changes
-    if (preferences.darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [preferences.darkMode]);
 
   return (
     <SettingsContext.Provider value={{ preferences, setPreferences, isLoading }}>

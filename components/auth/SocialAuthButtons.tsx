@@ -12,7 +12,8 @@ export function SocialAuthButtons() {
   const [isPending, startTransition] = useTransition();
   const handleSignIn = (provider: "google" | "github") => {
     startTransition(async () => {
-      const result = await signIn(provider, { callbackUrl: "/dashboard" });
+      // Don't specify callbackUrl - let the auth system determine based on role
+      const result = await signIn(provider, { redirect: true });
       if (result?.error) {
         toast.error(result.error ?? `Unable to sign in with ${provider}`);
       }

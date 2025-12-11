@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { aiService } from '@/lib/ai-service';
+import { employeeAIService } from '@/lib/ai-services';
 
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
     
-    if (!session?.user || (session.user.role !== 'LEAD' && session.user.role !== 'MANAGER' && session.user.role !== 'ADMIN')) {
+    if (!session?.user || (session.user.role !== 'LEAD' && session.user.role !== 'MANAGER' && session.user.role !== 'ADMIN' && session.user.role !== 'EMPLOYEE')) {
       return NextResponse.json(
-        { error: 'Unauthorized. Lead, Manager, or Admin access required.' },
+        { error: 'Unauthorized. Employee, Lead, Manager, or Admin access required.' },
         { status: 403 }
       );
     }
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = await aiService.generateReport(reportData);
+    const result = await employeeAIService.generateReport(reportData);
 
     return NextResponse.json(result);
   } catch (error: any) {

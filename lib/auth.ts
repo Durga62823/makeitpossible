@@ -18,48 +18,7 @@ const authConfig: NextAuthConfig = {
   trustHost: true,
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
-  adapter: {
-    ...PrismaAdapter(prisma),
-    // Override linkAccount to handle email account linking
-    linkAccount: async (account) => {
-      // Check if a user with this email already exists
-      const provider = account.provider;
-      const providerAccountId = account.providerAccountId;
-      
-      // Try to find existing account
-      const existingAccount = await prisma.account.findUnique({
-        where: {
-          provider_providerAccountId: {
-            provider,
-            providerAccountId,
-          },
-        },
-        include: { user: true },
-      });
-
-      if (existingAccount) {
-        // Account already linked, return it
-        return existingAccount;
-      }
-
-      // Create new account link
-      return await prisma.account.create({
-        data: {
-          userId: account.userId,
-          type: account.type,
-          provider: account.provider,
-          providerAccountId: account.providerAccountId,
-          refresh_token: account.refresh_token,
-          access_token: account.access_token,
-          expires_at: account.expires_at,
-          token_type: account.token_type,
-          scope: account.scope,
-          id_token: account.id_token,
-          session_state: account.session_state,
-        },
-      });
-    },
-  },
+  adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
     maxAge: REMEMBERED_MAX_AGE,
@@ -130,17 +89,18 @@ const authConfig: NextAuthConfig = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      // For OAuth providers, auto-verify email if not already verified
+      // For OAuth providers, just verify email and update user info
       if (account && account.provider !== "credentials") {
         const email = user.email || profile?.email;
         if (!email) return false;
 
-        // Check if user exists and needs email verification
+        // Check if user exists
         const existingUser = await prisma.user.findUnique({
           where: { email },
         });
 
-        if (existingUser && !existingUser.emailVerified) {
+        if (existingUser) {
+          // Update user info and verify email
           await prisma.user.update({
             where: { id: existingUser.id },
             data: {
@@ -163,6 +123,18 @@ const authConfig: NextAuthConfig = {
         token.picture = user.image ?? token.picture;
         const now = Math.floor(Date.now() / 1000);
         token.sessionExpiresAt = now + (token.rememberMe ? REMEMBERED_MAX_AGE : DEFAULT_MAX_AGE);
+        
+        // For OAuth sign-ins, fetch the role from the database
+        if (account && account.provider !== 'credentials' && user.id) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            select: { role: true, status: true },
+          });
+          if (dbUser) {
+            token.role = dbUser.role;
+            token.status = dbUser.status;
+          }
+        }
       }
 
       if (account) {

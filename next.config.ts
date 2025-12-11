@@ -47,7 +47,17 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
-  webpack: (config, { isServer }) => {
+  serverExternalPackages: ['@prisma/client', 'prisma'],
+  webpack: (config, { isServer, nextRuntime }) => {
+    // Exclude Prisma from Edge Runtime (middleware)
+    if (nextRuntime === 'edge') {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '.prisma/client/index-browser': false,
+        '@prisma/client': false,
+      };
+    }
+    
     if (!isServer) {
       config.resolve.alias = {
         ...config.resolve.alias,

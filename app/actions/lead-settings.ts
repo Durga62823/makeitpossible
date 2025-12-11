@@ -7,7 +7,6 @@ import { hash, compare } from "bcryptjs";
 import { z } from "zod";
 
 const preferencesSchema = z.object({
-  darkMode: z.boolean().optional(),
   compactView: z.boolean().optional(),
   timezone: z.string().optional(),
   language: z.string().optional(),

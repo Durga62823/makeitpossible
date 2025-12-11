@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { aiService } from "@/lib/ai-service";
+import { adminAIService } from "@/lib/ai-services";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const result = await aiService.planSprint(sprintData);
+    const result = await adminAIService.planSprint(sprintData);
 
     return NextResponse.json(result);
   } catch (error: any) {

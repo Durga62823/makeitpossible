@@ -34,12 +34,10 @@ export async function getUserSettings() {
     console.error("Failed to load user settings:", error);
     return {
       preferences: {
-        darkMode: false,
         compactView: false,
-        timezone: "UTC (GMT+0:00)",
-        language: "English",
-      },
-      notificationSettings: {
+        timezone: 'UTC (GMT+0:00)',
+        language: 'English',
+      },tificationSettings: {
         taskAssignments: true,
         codeReviews: true,
         sprintUpdates: true,
